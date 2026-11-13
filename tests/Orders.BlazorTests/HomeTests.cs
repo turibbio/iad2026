@@ -16,6 +16,7 @@ public sealed class HomeTests : BunitContext
         Services.AddSingleton<IOrderRepository>(_repository);
         Services.AddScoped<GetDemoOrderHandler>();
         Services.AddScoped<ApplyDiscountHandler>();
+        Services.AddScoped<RemoveDiscountHandler>();
     }
 
     [Fact]
@@ -68,6 +69,29 @@ public sealed class HomeTests : BunitContext
     }
 
     [Fact]
+    public void RemoveDiscountUpdatesOrderAndConfirmation()
+    {
+        var page = Render<Home>();
+        page.Find("form").Submit();
+        Assert.Contains("80,00", page.Find("[data-testid=total]").TextContent);
+        page.FindAll("button").Single(b => b.TextContent == "Rimuovi sconto").Click();
+        Assert.Contains("100,00", page.Find("[data-testid=total]").TextContent);
+        Assert.Equal("Sconto rimosso.", page.Find("[role=status]").TextContent);
+        Assert.Equal(2, _repository.Saves);
+    }
+
+    [Fact]
+    public void RemoveDiscountIsDisabledWithoutDiscount()
+    {
+        var page = Render<Home>();
+        Assert.True(RemoveButton(page).HasAttribute("disabled"));
+        page.Find("form").Submit();
+        Assert.False(RemoveButton(page).HasAttribute("disabled"));
+        RemoveButton(page).Click();
+        Assert.True(RemoveButton(page).HasAttribute("disabled"));
+    }
+
+    [Fact]
     public void MissingOrderIsVisible()
     {
         _repository.Order = null;
@@ -75,6 +99,9 @@ public sealed class HomeTests : BunitContext
         Assert.Contains("Ordine non disponibile.", page.Markup);
         Assert.Empty(page.FindAll("form"));
     }
+
+    private static AngleSharp.Dom.IElement RemoveButton(IRenderedComponent<Home> page) =>
+        page.FindAll("button").Single(b => b.TextContent == "Rimuovi sconto");
 
     private sealed class StubRepository : IOrderRepository
     {

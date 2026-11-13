@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddScoped<IOrderRepository>(_ => new InMemoryOrderRepository(new Order(GetDemoOrderHandler.OrderId, 100m)));
 builder.Services.AddScoped<ApplyDiscountHandler>();
+builder.Services.AddScoped<RemoveDiscountHandler>();
 builder.Services.AddScoped<GetDemoOrderHandler>();
 
 var app = builder.Build();

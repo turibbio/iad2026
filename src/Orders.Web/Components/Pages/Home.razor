@@ -1,6 +1,7 @@
 @page "/"
 @inject GetDemoOrderHandler Query
 @inject ApplyDiscountHandler DiscountHandler
+@inject RemoveDiscountHandler RemoveHandler
 
 <PageTitle>Ordini | Harness Engineering</PageTitle>
 <h1>Gestione ordini</h1>
@@ -30,6 +31,7 @@ else
                 <InputNumber disabled="@(!_interactive)" id="discount-percentage" class="field" @bind-Value="_input.Percentage" />
                 <button type="submit" disabled="@(!_interactive)">Applica</button>
             </EditForm>
+            <button type="button" disabled="@(!_interactive || _order.DiscountPercentage == 0)" @onclick="RemoveAsync">Rimuovi sconto</button>
             @if (_error is not null) { <p role="alert" class="error">@_error</p> }
             @if (_success is not null) { <p role="status" class="success">@_success</p> }
         </section>
@@ -72,6 +74,14 @@ else
             _error = exception.Message;
             _success = null;
         }
+    }
+
+    private async Task RemoveAsync()
+    {
+        if (_order is null) return;
+        _order = await RemoveHandler.HandleAsync(_order.Id);
+        _error = _order is null ? "Ordine non disponibile." : null;
+        _success = _order is null ? null : "Sconto rimosso.";
     }
 
     private void ClearMessages() { _error = null; _success = null; }
