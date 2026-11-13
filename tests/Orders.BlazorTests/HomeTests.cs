@@ -81,6 +81,17 @@ public sealed class HomeTests : BunitContext
     }
 
     [Fact]
+    public void RemoveDiscountIsDisabledWithoutDiscount()
+    {
+        var page = Render<Home>();
+        Assert.True(RemoveButton(page).HasAttribute("disabled"));
+        page.Find("form").Submit();
+        Assert.False(RemoveButton(page).HasAttribute("disabled"));
+        RemoveButton(page).Click();
+        Assert.True(RemoveButton(page).HasAttribute("disabled"));
+    }
+
+    [Fact]
     public void MissingOrderIsVisible()
     {
         _repository.Order = null;
@@ -88,6 +99,9 @@ public sealed class HomeTests : BunitContext
         Assert.Contains("Ordine non disponibile.", page.Markup);
         Assert.Empty(page.FindAll("form"));
     }
+
+    private static AngleSharp.Dom.IElement RemoveButton(IRenderedComponent<Home> page) =>
+        page.FindAll("button").Single(b => b.TextContent == "Rimuovi sconto");
 
     private sealed class StubRepository : IOrderRepository
     {

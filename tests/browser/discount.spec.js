@@ -37,5 +37,6 @@ test('Prerendered form waits for an interactive circuit', async ({ browser }) =>
   await expect(page.getByLabel('Codice sconto')).toBeDisabled();
   await expect(page.getByLabel('Percentuale')).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Applica', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Rimuovi sconto', exact: true })).toBeDisabled();
   await context.close();
 });

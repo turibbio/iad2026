@@ -31,7 +31,7 @@ else
                 <InputNumber disabled="@(!_interactive)" id="discount-percentage" class="field" @bind-Value="_input.Percentage" />
                 <button type="submit" disabled="@(!_interactive)">Applica</button>
             </EditForm>
-            <button type="button" @onclick="RemoveAsync">Rimuovi sconto</button>
+            <button type="button" disabled="@(!_interactive || _order.DiscountPercentage == 0)" @onclick="RemoveAsync">Rimuovi sconto</button>
             @if (_error is not null) { <p role="alert" class="error">@_error</p> }
             @if (_success is not null) { <p role="status" class="success">@_success</p> }
         </section>
