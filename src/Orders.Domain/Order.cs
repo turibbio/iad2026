@@ -24,6 +24,12 @@ public sealed class Order
         Subtotal = subtotal;
     }
 
+    public void RemoveDiscount()
+    {
+        DiscountPercentage = 0;
+        DiscountCode = null;
+    }
+
     public void ApplyDiscount(string code, decimal percentage)
     {
         if (string.IsNullOrWhiteSpace(code))

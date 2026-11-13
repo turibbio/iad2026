@@ -14,11 +14,14 @@ test('Interactive Server applies a discount and rejects invalid inputs', async (
   await expect(page.getByText('Lo sconto deve essere tra 0 e 30%.')).toBeVisible();
   await expect(page.getByTestId('total')).toContainText('80,00');
   await expect(page.getByRole('status')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Rimuovi sconto', exact: true }).click();
+  await expect(page.getByTestId('total')).toContainText('100,00');
+  await expect(page.getByRole('status')).toHaveText('Sconto rimosso.');
   await page.getByLabel('Codice sconto').fill('');
   await page.getByLabel('Percentuale').fill('20');
   await page.getByRole('button', { name: 'Applica', exact: true }).click();
   await expect(page.getByText('Il codice è obbligatorio.')).toBeVisible();
-  await expect(page.getByTestId('total')).toContainText('80,00');
+  await expect(page.getByTestId('total')).toContainText('100,00');
 });
 
 test('A new circuit starts with an independent order', async ({ page }) => {

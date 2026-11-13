@@ -16,6 +16,7 @@ public sealed class HomeTests : BunitContext
         Services.AddSingleton<IOrderRepository>(_repository);
         Services.AddScoped<GetDemoOrderHandler>();
         Services.AddScoped<ApplyDiscountHandler>();
+        Services.AddScoped<RemoveDiscountHandler>();
     }
 
     [Fact]
@@ -65,6 +66,18 @@ public sealed class HomeTests : BunitContext
         page.Find("form").Submit();
         Assert.Empty(page.FindAll("[role=status]"));
         Assert.Contains("80,00", page.Find("[data-testid=total]").TextContent);
+    }
+
+    [Fact]
+    public void RemoveDiscountUpdatesOrderAndConfirmation()
+    {
+        var page = Render<Home>();
+        page.Find("form").Submit();
+        Assert.Contains("80,00", page.Find("[data-testid=total]").TextContent);
+        page.FindAll("button").Single(b => b.TextContent == "Rimuovi sconto").Click();
+        Assert.Contains("100,00", page.Find("[data-testid=total]").TextContent);
+        Assert.Equal("Sconto rimosso.", page.Find("[role=status]").TextContent);
+        Assert.Equal(2, _repository.Saves);
     }
 
     [Fact]
