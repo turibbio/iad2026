@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+artifacts/
+.vs/
+.idea/
+.vscode/
+.DS_Store
+
+**/node_modules/
+
+# Materiale della presentazione e strumenti locali
+*.pptx
+*.pdf
+!slides/*.pdf
+.tokensave/

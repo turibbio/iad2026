@@ -1,0 +1,5 @@
+<Solution><Project Path="src/Orders.Domain/Orders.Domain.csproj" />
+  <Folder Name="/src/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/Orders.BlazorTests/Orders.BlazorTests.csproj" />
+  </Folder><Project Path="src/Orders.Application/Orders.Application.csproj" /><Project Path="src/Orders.Infrastructure/Orders.Infrastructure.csproj" /><Project Path="src/Orders.Web/Orders.Web.csproj" /><Project Path="tests/Orders.UnitTests/Orders.UnitTests.csproj" /><Project Path="tests/Orders.ArchitectureTests/Orders.ArchitectureTests.csproj" /></Solution>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Orders.Domain/Orders.Domain.csproj" />
+    <!-- DEMO ONLY: forbidden dependency -->
+    <ProjectReference Include="../Orders.Infrastructure/Orders.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

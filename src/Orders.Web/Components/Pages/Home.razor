@@ -1,0 +1,88 @@
+@page "/"
+@inject GetDemoOrderHandler Query
+@inject ApplyDiscountHandler DiscountHandler
+
+<PageTitle>Ordini | Harness Engineering</PageTitle>
+<h1>Gestione ordini</h1>
+<p>Blazor Web App con quality gate verificabili.</p>
+@if (_order is null)
+{
+    <p>Ordine non disponibile.</p>
+}
+else
+{
+    <div class="grid">
+        <section class="card">
+            <h2>Ordine demo</h2>
+            <p>Subtotale: <strong>@Money(_order.Subtotal)</strong></p>
+            <p>Sconto: <strong>@_order.DiscountPercentage.ToString("0.##")%</strong></p>
+            <p class="total" data-testid="total">Totale: <strong>@Money(_order.Total)</strong></p>
+            @if (_order.DiscountCode is not null) { <p>Codice: @_order.DiscountCode</p> }
+        </section>
+        <section class="card">
+            <h2>Applica uno sconto</h2>
+            <EditForm Model="_input" OnValidSubmit="ApplyAsync" OnInvalidSubmit="ClearMessages" FormName="discount">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <label for="discount-code">Codice sconto</label>
+                <InputText disabled="@(!_interactive)" id="discount-code" class="field" @bind-Value="_input.Code" />
+                <label for="discount-percentage">Percentuale</label>
+                <InputNumber disabled="@(!_interactive)" id="discount-percentage" class="field" @bind-Value="_input.Percentage" />
+                <button type="submit" disabled="@(!_interactive)">Applica</button>
+            </EditForm>
+            @if (_error is not null) { <p role="alert" class="error">@_error</p> }
+            @if (_success is not null) { <p role="status" class="success">@_success</p> }
+        </section>
+    </div>
+}
+<section class="note">Prova uno sconto del 20% e uno maggiore del 30%. Il test ARCH001 impedisce dipendenze Application -> Infrastructure.</section>
+
+@code {
+    private bool _interactive;
+    private Order? _order;
+    private DiscountInput _input = new();
+    private string? _error;
+    private string? _success;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _interactive = true;
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _order = await Query.HandleAsync();
+    }
+    private async Task ApplyAsync()
+    {
+        if (_order is null) return;
+        try
+        {
+            _order = await DiscountHandler.HandleAsync(_order.Id, _input.Code, _input.Percentage);
+            _error = null;
+            _success = _order is null ? null : "Sconto applicato.";
+            _error = _order is null ? "Ordine non disponibile." : null;
+        }
+        catch (ArgumentException exception)
+        {
+            _error = exception.Message;
+            _success = null;
+        }
+    }
+
+    private void ClearMessages() { _error = null; _success = null; }
+
+    private static string Money(decimal value) => value.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("it-IT"));
+
+    private sealed class DiscountInput
+    {
+        [Required(ErrorMessage = "Il codice è obbligatorio.")]
+        public string Code { get; set; } = "SAVE20";
+        [Range(typeof(decimal), "0", "30", ErrorMessage = "Lo sconto deve essere tra 0 e 30%.")]
+        public decimal Percentage { get; set; } = 20m;
+    }
+}

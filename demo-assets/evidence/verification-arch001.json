@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "2.0",
+  "generatedAt": "2026-11-10T10:51:55.6753690+00:00",
+  "status": "failed",
+  "checks": [
+    {
+      "id": "harness-tests",
+      "category": "harness",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/harness-tests.log",
+      "exitCode": 0,
+      "counts": {
+        "skipped": 0,
+        "passed": 38,
+        "total": 38,
+        "failed": 0
+      },
+      "failures": []
+    },
+    {
+      "id": "restore",
+      "category": "dependencies",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/restore.log",
+      "exitCode": 0
+    },
+    {
+      "id": "build",
+      "category": "build",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/build.log",
+      "exitCode": 0
+    },
+    {
+      "id": "format",
+      "category": "style",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/format.log",
+      "exitCode": 0
+    },
+    {
+      "id": "unit-tests",
+      "category": "unit",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/unit-tests.log",
+      "exitCode": 0,
+      "counts": {
+        "total": 19,
+        "passed": 19,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": []
+    },
+    {
+      "id": "architecture-tests",
+      "category": "architecture",
+      "status": "failed",
+      "blocking": true,
+      "message": "Tests failed, skipped or not executed",
+      "file": null,
+      "log": "artifacts/logs/architecture-tests.log",
+      "exitCode": 1,
+      "counts": {
+        "total": 5,
+        "passed": 3,
+        "skipped": 0,
+        "failed": 2
+      },
+      "failures": [
+        {
+          "file": "src/Orders.Application/Orders.Application.csproj",
+          "message": "ARCH001: src/Orders.Application/Orders.Application.csproj references Orders.Infrastructure",
+          "blocking": true,
+          "id": "ARCH001"
+        },
+        {
+          "file": null,
+          "message": "Assert.DoesNotContain() Failure: Item found in collection\n                                                ↓ (pos 2)\nCollection: [\"System.Runtime\", \"Orders.Domain\", \"Orders.Infrastructure\"]\nFound:      \"Orders.Infrastructure\"",
+          "blocking": true,
+          "id": "ARCH001"
+        }
+      ]
+    },
+    {
+      "id": "blazor-tests",
+      "category": "components",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/blazor-tests.log",
+      "exitCode": 0,
+      "counts": {
+        "total": 8,
+        "passed": 8,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": []
+    },
+    {
+      "id": "browser-restore",
+      "category": "dependencies",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/browser-restore.log",
+      "exitCode": 0
+    },
+    {
+      "id": "browser-tests",
+      "category": "browser",
+      "status": "passed",
+      "blocking": true,
+      "message": "Completed",
+      "file": null,
+      "log": "artifacts/logs/browser-tests.log",
+      "exitCode": 0,
+      "counts": {
+        "total": 3,
+        "passed": 3,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": []
+    }
+  ]
+}

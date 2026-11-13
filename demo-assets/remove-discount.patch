@@ -1,0 +1,200 @@
+diff --git a/src/Orders.Application/RemoveDiscountHandler.cs b/src/Orders.Application/RemoveDiscountHandler.cs
+new file mode 100644
+index 0000000..a587334
+--- /dev/null
++++ b/src/Orders.Application/RemoveDiscountHandler.cs
+@@ -0,0 +1,19 @@
++using Orders.Domain;
++
++namespace Orders.Application;
++
++public sealed class RemoveDiscountHandler(IOrderRepository repository)
++{
++    public async Task<Order?> HandleAsync(Guid orderId, CancellationToken cancellationToken = default)
++    {
++        var order = await repository.GetByIdAsync(orderId, cancellationToken);
++        if (order is null)
++        {
++            return null;
++        }
++
++        order.RemoveDiscount();
++        await repository.SaveAsync(order, cancellationToken);
++        return order;
++    }
++}
+diff --git a/src/Orders.Domain/Order.cs b/src/Orders.Domain/Order.cs
+index 85375f5..55742b1 100644
+--- a/src/Orders.Domain/Order.cs
++++ b/src/Orders.Domain/Order.cs
+@@ -24,6 +24,12 @@ public sealed class Order
+         Subtotal = subtotal;
+     }
+ 
++    public void RemoveDiscount()
++    {
++        DiscountPercentage = 0;
++        DiscountCode = null;
++    }
++
+     public void ApplyDiscount(string code, decimal percentage)
+     {
+         if (string.IsNullOrWhiteSpace(code))
+diff --git a/src/Orders.Web/Components/Pages/Home.razor b/src/Orders.Web/Components/Pages/Home.razor
+index 5ac3cec..7d96250 100644
+--- a/src/Orders.Web/Components/Pages/Home.razor
++++ b/src/Orders.Web/Components/Pages/Home.razor
+@@ -1,6 +1,7 @@
+ @page "/"
+ @inject GetDemoOrderHandler Query
+ @inject ApplyDiscountHandler DiscountHandler
++@inject RemoveDiscountHandler RemoveHandler
+ 
+ <PageTitle>Ordini | Harness Engineering</PageTitle>
+ <h1>Gestione ordini</h1>
+@@ -30,6 +31,7 @@ else
+                 <InputNumber disabled="@(!_interactive)" id="discount-percentage" class="field" @bind-Value="_input.Percentage" />
+                 <button type="submit" disabled="@(!_interactive)">Applica</button>
+             </EditForm>
++            <button type="button" @onclick="RemoveAsync">Rimuovi sconto</button>
+             @if (_error is not null) { <p role="alert" class="error">@_error</p> }
+             @if (_success is not null) { <p role="status" class="success">@_success</p> }
+         </section>
+@@ -64,6 +66,14 @@ else
+         }
+     }
+ 
++    private async Task RemoveAsync()
++    {
++        if (_order is null) return;
++        _order = await RemoveHandler.HandleAsync(_order.Id);
++        _error = _order is null ? "Ordine non disponibile." : null;
++        _success = _order is null ? null : "Sconto rimosso.";
++    }
++
+     private void ClearMessages() { _error = null; _success = null; }
+ 
+     private static string Money(decimal value) => value.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("it-IT"));
+diff --git a/src/Orders.Web/Program.cs b/src/Orders.Web/Program.cs
+index 22a17ca..22456b3 100644
+--- a/src/Orders.Web/Program.cs
++++ b/src/Orders.Web/Program.cs
+@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
+ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+ builder.Services.AddScoped<IOrderRepository>(_ => new InMemoryOrderRepository(new Order(GetDemoOrderHandler.OrderId, 100m)));
+ builder.Services.AddScoped<ApplyDiscountHandler>();
++builder.Services.AddScoped<RemoveDiscountHandler>();
+ builder.Services.AddScoped<GetDemoOrderHandler>();
+ 
+ var app = builder.Build();
+diff --git a/tests/Orders.BlazorTests/HomeTests.cs b/tests/Orders.BlazorTests/HomeTests.cs
+index 056c18a..7c49a9c 100644
+--- a/tests/Orders.BlazorTests/HomeTests.cs
++++ b/tests/Orders.BlazorTests/HomeTests.cs
+@@ -16,6 +16,7 @@ public sealed class HomeTests : BunitContext
+         Services.AddSingleton<IOrderRepository>(_repository);
+         Services.AddScoped<GetDemoOrderHandler>();
+         Services.AddScoped<ApplyDiscountHandler>();
++        Services.AddScoped<RemoveDiscountHandler>();
+     }
+ 
+     [Fact]
+@@ -67,6 +68,18 @@ public sealed class HomeTests : BunitContext
+         Assert.Contains("80,00", page.Find("[data-testid=total]").TextContent);
+     }
+ 
++    [Fact]
++    public void RemoveDiscountUpdatesOrderAndConfirmation()
++    {
++        var page = Render<Home>();
++        page.Find("form").Submit();
++        Assert.Contains("80,00", page.Find("[data-testid=total]").TextContent);
++        page.FindAll("button").Single(b => b.TextContent == "Rimuovi sconto").Click();
++        Assert.Contains("100,00", page.Find("[data-testid=total]").TextContent);
++        Assert.Equal("Sconto rimosso.", page.Find("[role=status]").TextContent);
++        Assert.Equal(2, _repository.Saves);
++    }
++
+     [Fact]
+     public void MissingOrderIsVisible()
+     {
+diff --git a/tests/Orders.UnitTests/RemoveDiscountTests.cs b/tests/Orders.UnitTests/RemoveDiscountTests.cs
+new file mode 100644
+index 0000000..69e3342
+--- /dev/null
++++ b/tests/Orders.UnitTests/RemoveDiscountTests.cs
+@@ -0,0 +1,54 @@
++using Orders.Application;
++using Orders.Domain;
++using Xunit;
++
++namespace Orders.UnitTests;
++
++public sealed class RemoveDiscountTests
++{
++    [Fact]
++    public void RemovingDiscountIsIdempotent()
++    {
++        var order = new Order(Guid.NewGuid(), 100);
++        order.ApplyDiscount("SAVE20", 20);
++        order.RemoveDiscount();
++        order.RemoveDiscount();
++        Assert.Equal(100, order.Total);
++        Assert.Equal(100, order.Subtotal);
++        Assert.Equal(0, order.DiscountPercentage);
++        Assert.Null(order.DiscountCode);
++    }
++
++    [Theory]
++    [InlineData(true)]
++    [InlineData(false)]
++    public async Task HandlerPersistsOnlyExistingOrder(bool exists)
++    {
++        var repository = new StubRepository(exists);
++        var result = await new RemoveDiscountHandler(repository).HandleAsync(Guid.NewGuid());
++        Assert.Equal(exists, result is not null);
++        Assert.Equal(exists, repository.Saved);
++        if (result is not null)
++        {
++            Assert.Equal(100, result.Total);
++            Assert.Null(result.DiscountCode);
++        }
++    }
++
++    private sealed class StubRepository(bool exists) : IOrderRepository
++    {
++        public bool Saved { get; private set; }
++        public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
++        {
++            if (!exists) return Task.FromResult<Order?>(null);
++            var order = new Order(id, 100);
++            order.ApplyDiscount("SAVE20", 20);
++            return Task.FromResult<Order?>(order);
++        }
++        public Task SaveAsync(Order order, CancellationToken cancellationToken = default)
++        {
++            Saved = true;
++            return Task.CompletedTask;
++        }
++    }
++}
+diff --git a/tests/browser/discount.spec.js b/tests/browser/discount.spec.js
+index 2f20d80..8f3c48d 100644
+--- a/tests/browser/discount.spec.js
++++ b/tests/browser/discount.spec.js
+@@ -16,11 +16,14 @@ test('Interactive Server applies a discount and rejects invalid inputs', async (
+   await expect(page.getByText('Lo sconto deve essere tra 0 e 30%.')).toBeVisible();
+   await expect(page.getByTestId('total')).toContainText('80,00');
+   await expect(page.getByRole('status')).toHaveCount(0);
++  await page.getByRole('button', { name: 'Rimuovi sconto', exact: true }).click();
++  await expect(page.getByTestId('total')).toContainText('100,00');
++  await expect(page.getByRole('status')).toHaveText('Sconto rimosso.');
+   await page.getByLabel('Codice sconto').fill('');
+   await page.getByLabel('Percentuale').fill('20');
+   await page.getByRole('button', { name: 'Applica', exact: true }).click();
+   await expect(page.getByText('Il codice è obbligatorio.')).toBeVisible();
+-  await expect(page.getByTestId('total')).toContainText('80,00');
++  await expect(page.getByTestId('total')).toContainText('100,00');
+ });
+ 
+ test('A new circuit starts with an independent order', async ({ page }) => {

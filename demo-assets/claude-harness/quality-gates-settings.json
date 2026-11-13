@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/demo-assets/claude-harness/protect-quality-gates.ps1\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

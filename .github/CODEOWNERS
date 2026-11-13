@@ -1,0 +1,13 @@
+# Proprietario delle regole di verifica; richiedere review CODEOWNERS da repository settings.
+/.github/workflows/ @turibbio
+/eng/ @turibbio
+/tests/Orders.ArchitectureTests/ @turibbio
+/.github/CODEOWNERS @turibbio
+/Directory.Build.props @turibbio
+/AGENTS.md @turibbio
+/.specify/memory/constitution.md @turibbio
+/scripts/ @turibbio
+/tests/ @turibbio
+/docs/TEAM-WORKFLOW.md @turibbio
+/.github/ISSUE_TEMPLATE/ @turibbio
+/.github/PULL_REQUEST_TEMPLATE.md @turibbio
