@@ -345,10 +345,15 @@ pwsh -NoProfile -File scripts/agileday.ps1 -Step Persone
 
 **Cosa verificare.** Lo step di `.github/workflows/verify.yml` esegue lo stesso
 `eng/verify.ps1`; la tabella degli stati mostra chi prosegue in ogni fase.
-Il ciclo completo su GitHub: issue con i criteri, branch dedicato, PR draft con
-`verify` verde, commento del reviewer, risposta dell'agente nel thread con il
+Il ciclo completo è nella
+[PR #2](https://github.com/turibbio/iad2026/pull/2): issue #1, branch, PR draft
+con `verify` verde, commento del reviewer, risposta dell'agente nel thread con il
 commit correttivo e un nuovo test, check `verify` rieseguito su quel commit.
-Risoluzione del thread e merge spettano al reviewer.
+La PR resta aperta: risoluzione del thread e merge spettano al reviewer.
+
+```bash
+gh pr checks 2 --repo turibbio/iad2026
+```
 
 Lo stesso contratto funziona con GitHub Copilot: `.github/copilot-instructions.md`
 rimanda ad `AGENTS.md` e chiede di chiudere ogni lavoro con `eng/verify.ps1`.
